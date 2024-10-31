@@ -35,14 +35,14 @@
             border: none;
         }
 
-        /* Cursor that appears over iframe */
-        .virtual-cursor {
+        /* Touch indicator */
+        .touch-indicator {
             position: absolute;
             width: 20px;
             height: 20px;
-            background: white;
+            background: rgba(255, 255, 255, 0.8);
             border-radius: 50%;
-            pointer-events: none;
+            pointer-events: none; /* Prevent this from blocking touch events */
             transform: translate(-50%, -50%);
             z-index: 10;
         }
@@ -63,62 +63,47 @@
 </head>
 
 <body>
-    <!-- Container for the iframe and virtual cursor -->
+    <!-- Container for the iframe and touch indicator -->
     <div class="iframe-container">
         <iframe src="https://empire.goodgamestudios.com/?nomobileredirect=true" allowfullscreen></iframe>
-        <div class="virtual-cursor" id="cursor"></div>
+        <div class="touch-indicator" id="indicator"></div>
     </div>
 
     <!-- Touchpad area -->
-    <div class="touchpad" id="touchpad">Touch here to move the cursor</div>
+    <div class="touchpad" id="touchpad">Touch here to move</div>
 
     <script>
-        const cursor = document.getElementById('cursor');
+        const indicator = document.getElementById('indicator');
         const touchpad = document.getElementById('touchpad');
 
-        // Initialize cursor position
-        let cursorX = window.innerWidth / 2; // Start cursor in the middle
-        let cursorY = window.innerHeight * 0.3; // Start cursor near the top (within iframe)
-        let lastTouchX = cursorX; // Track last touch position
-        let lastTouchY = cursorY;
+        // Initialize position of the touch indicator
+        let indicatorX = window.innerWidth / 2; // Start in the middle
+        let indicatorY = window.innerHeight * 0.3; // Start near the top (within iframe)
 
-        // Update cursor position
-        function updateCursor() {
-            cursor.style.transform = `translate(${cursorX}px, ${cursorY}px)`;
+        // Update indicator position
+        function updateIndicator(x, y) {
+            indicator.style.transform = `translate(${x}px, ${y}px)`;
         }
 
         // Listen for touch events on the touchpad
         touchpad.addEventListener('touchstart', (event) => {
             event.preventDefault();
             const touch = event.touches[0];
-            lastTouchX = touch.clientX;
-            lastTouchY = touch.clientY;
+            indicatorX = touch.clientX;
+            indicatorY = touch.clientY;
+            updateIndicator(indicatorX, indicatorY);
         });
 
         touchpad.addEventListener('touchmove', (event) => {
             event.preventDefault();
             const touch = event.touches[0];
-
-            // Calculate the movement
-            const movementX = touch.clientX - lastTouchX;
-            const movementY = touch.clientY - lastTouchY;
-
-            // Update cursor position based on touch movement
-            cursorX += movementX;
-            cursorY += movementY;
-
-            // Boundary limits
-            cursorX = Math.max(0, Math.min(window.innerWidth, cursorX));
-            cursorY = Math.max(0, Math.min(window.innerHeight * 0.6, cursorY)); // Adjusted to 60% height
-
-            // Update the cursor position and last touch position
-            updateCursor();
-            lastTouchX = touch.clientX;
-            lastTouchY = touch.clientY;
+            indicatorX = touch.clientX;
+            indicatorY = touch.clientY;
+            updateIndicator(indicatorX, indicatorY);
         });
 
-        // Initialize cursor position
-        updateCursor();
+        // Initialize the position of the touch indicator
+        updateIndicator(indicatorX, indicatorY);
     </script>
 </body>
 
