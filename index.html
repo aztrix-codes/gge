@@ -25,7 +25,7 @@
         .iframe-container {
             position: relative;
             width: 100vw;
-            height: 70vh;
+            height: 60vh; /* Set to 60% of viewport height */
             overflow: hidden;
         }
 
@@ -33,7 +33,6 @@
             width: 100%;
             height: 100%;
             border: none;
-            filter: contrast(1.1) brightness(1.1);
         }
 
         /* Cursor that appears over iframe */
@@ -46,13 +45,12 @@
             pointer-events: none;
             transform: translate(-50%, -50%);
             z-index: 10;
-            transition: transform 0.05s ease;
         }
 
         /* Touchpad area */
         .touchpad {
             width: 100vw;
-            height: 30vh;
+            height: 40vh; /* Set to 40% of viewport height */
             background: #222;
             touch-action: none;
             display: flex;
@@ -78,8 +76,11 @@
         const cursor = document.getElementById('cursor');
         const touchpad = document.getElementById('touchpad');
 
+        // Initialize cursor position
         let cursorX = window.innerWidth / 2; // Start cursor in the middle
-        let cursorY = window.innerHeight * 0.35; // Start cursor near the top (within iframe)
+        let cursorY = window.innerHeight * 0.3; // Start cursor near the top (within iframe)
+        let lastTouchX = cursorX; // Track last touch position
+        let lastTouchY = cursorY;
 
         // Update cursor position
         function updateCursor() {
@@ -87,19 +88,33 @@
         }
 
         // Listen for touch events on the touchpad
+        touchpad.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+            const touch = event.touches[0];
+            lastTouchX = touch.clientX;
+            lastTouchY = touch.clientY;
+        });
+
         touchpad.addEventListener('touchmove', (event) => {
             event.preventDefault();
             const touch = event.touches[0];
 
-            // Adjust cursor position based on touch movement
-            cursorX += touch.movementX || 0;
-            cursorY += touch.movementY || 0;
+            // Calculate the movement
+            const movementX = touch.clientX - lastTouchX;
+            const movementY = touch.clientY - lastTouchY;
+
+            // Update cursor position based on touch movement
+            cursorX += movementX;
+            cursorY += movementY;
 
             // Boundary limits
             cursorX = Math.max(0, Math.min(window.innerWidth, cursorX));
-            cursorY = Math.max(0, Math.min(window.innerHeight * 0.7, cursorY));
+            cursorY = Math.max(0, Math.min(window.innerHeight * 0.6, cursorY)); // Adjusted to 60% height
 
+            // Update the cursor position and last touch position
             updateCursor();
+            lastTouchX = touch.clientX;
+            lastTouchY = touch.clientY;
         });
 
         // Initialize cursor position
