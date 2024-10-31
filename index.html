@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>GGE</title>
+    <title>GGE with Virtual Touchpad</title>
     <style>
         * {
             margin: 0;
@@ -14,25 +14,97 @@
 
         body {
             background: black;
-            overflow: hidden;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Fullscreen iframe for game */
+        .iframe-container {
+            position: relative;
             width: 100vw;
+            height: 70vh;
+            overflow: hidden;
         }
 
         iframe {
-            width: 100vw;
-            height: 90vh;
+            width: 100%;
+            height: 100%;
             border: none;
             filter: contrast(1.1) brightness(1.1);
+        }
+
+        /* Cursor that appears over iframe */
+        .virtual-cursor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            transition: transform 0.05s ease;
+        }
+
+        /* Touchpad area */
+        .touchpad {
+            width: 100vw;
+            height: 30vh;
+            background: #222;
+            touch-action: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: Arial, sans-serif;
         }
     </style>
 </head>
 
 <body>
-    <iframe src="https://empire.goodgamestudios.com/?nomobileredirect=true" allowfullscreen></iframe>
+    <!-- Container for the iframe and virtual cursor -->
+    <div class="iframe-container">
+        <iframe src="https://empire.goodgamestudios.com/?nomobileredirect=true" allowfullscreen></iframe>
+        <div class="virtual-cursor" id="cursor"></div>
+    </div>
+
+    <!-- Touchpad area -->
+    <div class="touchpad" id="touchpad">Touch here to move the cursor</div>
+
+    <script>
+        const cursor = document.getElementById('cursor');
+        const touchpad = document.getElementById('touchpad');
+
+        let cursorX = window.innerWidth / 2; // Start cursor in the middle
+        let cursorY = window.innerHeight * 0.35; // Start cursor near the top (within iframe)
+
+        // Update cursor position
+        function updateCursor() {
+            cursor.style.transform = `translate(${cursorX}px, ${cursorY}px)`;
+        }
+
+        // Listen for touch events on the touchpad
+        touchpad.addEventListener('touchmove', (event) => {
+            event.preventDefault();
+            const touch = event.touches[0];
+
+            // Adjust cursor position based on touch movement
+            cursorX += touch.movementX || 0;
+            cursorY += touch.movementY || 0;
+
+            // Boundary limits
+            cursorX = Math.max(0, Math.min(window.innerWidth, cursorX));
+            cursorY = Math.max(0, Math.min(window.innerHeight * 0.7, cursorY));
+
+            updateCursor();
+        });
+
+        // Initialize cursor position
+        updateCursor();
+    </script>
 </body>
 
 </html>
