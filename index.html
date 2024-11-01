@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>GGE with Virtual Touchpad</title>
+    <title>Virtual Touchpad Controller</title>
     <style>
         * {
             margin: 0;
@@ -29,16 +29,6 @@
             height: 100%;
             border: none;
         }
-        .touch-indicator {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-        }
         .touchpad {
             width: 100vw;
             height: 35vh;
@@ -49,6 +39,16 @@
             justify-content: center;
             color: white;
             font-family: Arial, sans-serif;
+        }
+        .cursor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 10;
         }
         @media (orientation: landscape) {
             body {
@@ -67,15 +67,17 @@
 </head>
 <body>
     <div class="iframe-container">
-        <iframe src="https://empire.goodgamestudios.com/?nomobileredirect=true" allowfullscreen id="gameIframe"></iframe>
-        <div class="touch-indicator" id="indicator" style="display: none;"></div>
+        <iframe src="https://maker.cloud/jsketcher/mouse.html" allowfullscreen id="externalIframe"></iframe>
     </div>
     <div class="touchpad" id="touchpad">Touch here to move</div>
 
+    <!-- Cursor SVG to represent a virtual pointer -->
+    <div class="cursor" id="cursor"></div>
+
     <script>
-        const indicator = document.getElementById('indicator');
         const touchpad = document.getElementById('touchpad');
-        const iframe = document.getElementById('gameIframe').contentWindow;
+        const cursor = document.getElementById('cursor');
+        const iframe = document.getElementById('externalIframe').contentWindow;
 
         let mouseObject = {
             leftMouseDown: false,
@@ -83,14 +85,17 @@
             absoluteY: window.innerHeight * 0.3
         };
 
-        // Function to update the position of the touch indicator and ensure it's visible
-        function updateIndicator(x, y) {
-            indicator.style.display = 'block';
-            indicator.style.left = `${x}px`;
-            indicator.style.top = `${y}px`;
+        let lastTouchX = mouseObject.absoluteX;
+        let lastTouchY = mouseObject.absoluteY;
+        let speed = 0.6;
+
+        // Function to move the cursor
+        function updateCursor(x, y) {
+            cursor.style.left = `${x}px`;
+            cursor.style.top = `${y}px`;
         }
 
-        // Function to send events to the iframe using postMessage
+        // Function to send cursor events to the iframe
         function sendMouseEvent(eventType) {
             const message = {
                 absoluteX: mouseObject.absoluteX,
@@ -98,36 +103,51 @@
                 eventType: eventType,
                 leftMouseDown: mouseObject.leftMouseDown
             };
-            iframe.postMessage(message, "*");
+            iframe.postMessage(message, "https://maker.cloud");
         }
 
-        // Listen for touch events on the touchpad
+        // Touchpad control for cursor movement
         touchpad.addEventListener('touchstart', (event) => {
             event.preventDefault();
             const touch = event.touches[0];
-            mouseObject.absoluteX = touch.clientX;
-            mouseObject.absoluteY = touch.clientY;
+            lastTouchX = touch.clientX;
+            lastTouchY = touch.clientY;
 
-            updateIndicator(mouseObject.absoluteX, mouseObject.absoluteY);
-            sendMouseEvent("mousemove"); // Hover effect
+            mouseObject.absoluteX = lastTouchX;
+            mouseObject.absoluteY = lastTouchY;
+            updateCursor(mouseObject.absoluteX, mouseObject.absoluteY);
+            sendMouseEvent("mousemove"); // Send initial hover event
         });
 
         touchpad.addEventListener('touchmove', (event) => {
             event.preventDefault();
             const touch = event.touches[0];
-            mouseObject.absoluteX = touch.clientX;
-            mouseObject.absoluteY = touch.clientY;
+            const deltaX = (touch.clientX - lastTouchX) * speed;
+            const deltaY = (touch.clientY - lastTouchY) * speed;
 
-            updateIndicator(mouseObject.absoluteX, mouseObject.absoluteY);
-            sendMouseEvent("mousemove"); // Hover effect
+            mouseObject.absoluteX += deltaX;
+            mouseObject.absoluteY += deltaY;
+
+            lastTouchX = touch.clientX;
+            lastTouchY = touch.clientY;
+
+            updateCursor(mouseObject.absoluteX, mouseObject.absoluteY);
+            sendMouseEvent("mousemove"); // Send hover event on move
         });
 
-        // Simulate a left click on touchpad tap
-        touchpad.addEventListener('click', (event) => {
+        // Simulate click on touchend
+        touchpad.addEventListener('touchend', (event) => {
             event.preventDefault();
             mouseObject.leftMouseDown = true;
-            sendMouseEvent("click"); // Left-click event
+            sendMouseEvent("click");
             mouseObject.leftMouseDown = false;
+        });
+
+        // Listen for messages from iframe for debugging if needed
+        window.addEventListener("message", (event) => {
+            if (event.origin === "https://maker.cloud") {
+                console.log("Message received from iframe:", event.data);
+            }
         });
     </script>
 </body>
