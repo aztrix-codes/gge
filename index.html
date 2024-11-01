@@ -77,54 +77,72 @@
         const touchpad = document.getElementById('touchpad');
         const iframe = document.getElementById('gameIframe').contentWindow;
 
-        // Initialize position of the touch indicator
-        let indicatorX = window.innerWidth / 2;
-        let indicatorY = window.innerHeight * 0.3;
-
-        // Update indicator position
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+        let mouseObject = {
+            leftMouseDown: false,
+            absoluteX: 0,
+            absoluteY: 0
+        };
+        
+        // Function to update the position of the touch indicator
         function updateIndicator(x, y) {
             indicator.style.transform = `translate(${x}px, ${y}px)`;
         }
 
-        // Simulate mouse hover and click inside the iframe
-        function simulateMouseEvent(type, x, y) {
-            const event = new MouseEvent(type, {
-                bubbles: true,
-                cancelable: true,
-                clientX: x,
-                clientY: y,
-                view: window
-            });
-            iframe.dispatchEvent(event);
+        // Function to send events to the iframe using postMessage
+        function sendMouseEvent(eventType) {
+            const message = { 
+                absoluteX: mouseObject.absoluteX, 
+                absoluteY: mouseObject.absoluteY, 
+                eventType: eventType,
+                leftMouseDown: mouseObject.leftMouseDown
+            };
+            iframe.postMessage(message, "*");
         }
 
-        // Listen for touch events on the touchpad
+        // Touchstart - register the start of a touch and update indicator position
         touchpad.addEventListener('touchstart', (event) => {
             event.preventDefault();
             const touch = event.touches[0];
-            indicatorX = touch.clientX;
-            indicatorY = touch.clientY;
-            updateIndicator(indicatorX, indicatorY);
+            lastTouchX = touch.clientX;
+            lastTouchY = touch.clientY;
 
-            // Simulate hover
-            simulateMouseEvent('mousemove', indicatorX, indicatorY);
+            mouseObject.absoluteX = lastTouchX;
+            mouseObject.absoluteY = lastTouchY;
+            updateIndicator(mouseObject.absoluteX, mouseObject.absoluteY);
+
+            sendMouseEvent("mousemove"); // Hover effect
         });
 
+        // Touchmove - register movement and update indicator position
         touchpad.addEventListener('touchmove', (event) => {
             event.preventDefault();
             const touch = event.touches[0];
-            indicatorX = touch.clientX;
-            indicatorY = touch.clientY;
-            updateIndicator(indicatorX, indicatorY);
+            const diffX = touch.clientX - lastTouchX;
+            const diffY = touch.clientY - lastTouchY;
+            
+            mouseObject.absoluteX += diffX;
+            mouseObject.absoluteY += diffY;
+            updateIndicator(mouseObject.absoluteX, mouseObject.absoluteY);
 
-            // Simulate hover
-            simulateMouseEvent('mousemove', indicatorX, indicatorY);
+            lastTouchX = touch.clientX;
+            lastTouchY = touch.clientY;
+
+            sendMouseEvent("mousemove"); // Hover effect
         });
 
+        // Click - simulate a left mouse click
         touchpad.addEventListener('click', (event) => {
             event.preventDefault();
-            // Simulate left click inside iframe at the last hover position
-            simulateMouseEvent('click', indicatorX, indicatorY);
+            mouseObject.leftMouseDown = true;
+            sendMouseEvent("click"); // Left click event
+            mouseObject.leftMouseDown = false;
+        });
+
+        // Listen for messages from the iframe to debug or handle events if needed
+        window.addEventListener("message", (event) => {
+            console.log("Message received from iframe:", event.data);
         });
     </script>
 </body>
