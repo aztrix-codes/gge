@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Virtual Touchpad Controller</title>
+    <title>GGE with Virtual Touchpad</title>
     <style>
         * {
             margin: 0;
@@ -67,7 +67,7 @@
 </head>
 <body>
     <div class="iframe-container">
-        <iframe src="https://maker.cloud/jsketcher/mouse.html" allowfullscreen id="externalIframe"></iframe>
+        <iframe src="https://empire.goodgamestudios.com/?nomobileredirect=true" allowfullscreen id="gameIframe"></iframe>
     </div>
     <div class="touchpad" id="touchpad">Touch here to move</div>
 
@@ -77,7 +77,7 @@
     <script>
         const touchpad = document.getElementById('touchpad');
         const cursor = document.getElementById('cursor');
-        const iframe = document.getElementById('externalIframe').contentWindow;
+        const iframe = document.getElementById('gameIframe').contentWindow;
 
         let mouseObject = {
             leftMouseDown: false,
@@ -103,7 +103,7 @@
                 eventType: eventType,
                 leftMouseDown: mouseObject.leftMouseDown
             };
-            iframe.postMessage(message, "https://maker.cloud");
+            iframe.postMessage(message, "*");
         }
 
         // Touchpad control for cursor movement
@@ -145,9 +145,7 @@
 
         // Listen for messages from iframe for debugging if needed
         window.addEventListener("message", (event) => {
-            if (event.origin === "https://maker.cloud") {
-                console.log("Message received from iframe:", event.data);
-            }
+            console.log("Message received from iframe:", event.data);
         });
     </script>
 </body>
