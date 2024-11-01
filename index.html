@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
@@ -11,7 +10,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             background: black;
             display: flex;
@@ -20,37 +18,30 @@
             height: 100vh;
             overflow: hidden;
         }
-
-        /* Fullscreen iframe for game */
         .iframe-container {
             position: relative;
             width: 100vw;
-            height: 65vh; /* Set to 60% of viewport height */
+            height: 65vh;
             overflow: hidden;
         }
-
         iframe {
             width: 100%;
             height: 100%;
             border: none;
         }
-
-        /* Touch indicator */
         .touch-indicator {
             position: absolute;
             width: 20px;
             height: 20px;
             background: rgba(255, 255, 255, 0.8);
             border-radius: 50%;
-            pointer-events: none; /* Prevent this from blocking touch events */
+            pointer-events: none;
             transform: translate(-50%, -50%);
             z-index: 10;
         }
-
-        /* Touchpad area */
         .touchpad {
             width: 100vw;
-            height: 35vh; /* Set to 40% of viewport height */
+            height: 35vh;
             background: #222;
             touch-action: none;
             display: flex;
@@ -59,48 +50,52 @@
             color: white;
             font-family: Arial, sans-serif;
         }
-
         @media (orientation: landscape) {
             body {
                 flex-direction: row;
             }
-
-            /* Adjust iframe and touchpad size for landscape view */
             .iframe-container {
                 height: 100vh;
                 width: 70vw;
             }
-
             .touchpad {
                 height: 100vh;
                 width: 30vw;
             }
         }
-
     </style>
 </head>
-
 <body>
-    <!-- Container for the iframe and touch indicator -->
     <div class="iframe-container">
-        <iframe src="https://empire.goodgamestudios.com/?nomobileredirect=true" allowfullscreen></iframe>
+        <iframe src="https://empire.goodgamestudios.com/?nomobileredirect=true" allowfullscreen id="gameIframe"></iframe>
         <div class="touch-indicator" id="indicator"></div>
     </div>
-
-    <!-- Touchpad area -->
     <div class="touchpad" id="touchpad">Touch here to move</div>
 
     <script>
         const indicator = document.getElementById('indicator');
         const touchpad = document.getElementById('touchpad');
+        const iframe = document.getElementById('gameIframe').contentWindow;
 
         // Initialize position of the touch indicator
-        let indicatorX = window.innerWidth / 2; // Start in the middle
-        let indicatorY = window.innerHeight * 0.3; // Start near the top (within iframe)
+        let indicatorX = window.innerWidth / 2;
+        let indicatorY = window.innerHeight * 0.3;
 
         // Update indicator position
         function updateIndicator(x, y) {
             indicator.style.transform = `translate(${x}px, ${y}px)`;
+        }
+
+        // Simulate mouse hover and click inside the iframe
+        function simulateMouseEvent(type, x, y) {
+            const event = new MouseEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                clientX: x,
+                clientY: y,
+                view: window
+            });
+            iframe.dispatchEvent(event);
         }
 
         // Listen for touch events on the touchpad
@@ -110,6 +105,9 @@
             indicatorX = touch.clientX;
             indicatorY = touch.clientY;
             updateIndicator(indicatorX, indicatorY);
+
+            // Simulate hover
+            simulateMouseEvent('mousemove', indicatorX, indicatorY);
         });
 
         touchpad.addEventListener('touchmove', (event) => {
@@ -118,11 +116,16 @@
             indicatorX = touch.clientX;
             indicatorY = touch.clientY;
             updateIndicator(indicatorX, indicatorY);
+
+            // Simulate hover
+            simulateMouseEvent('mousemove', indicatorX, indicatorY);
         });
 
-        // Initialize the position of the touch indicator
-        updateIndicator(indicatorX, indicatorY);
+        touchpad.addEventListener('click', (event) => {
+            event.preventDefault();
+            // Simulate left click inside iframe at the last hover position
+            simulateMouseEvent('click', indicatorX, indicatorY);
+        });
     </script>
 </body>
-
 </html>
