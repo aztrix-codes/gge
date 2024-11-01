@@ -59,6 +59,24 @@
             color: white;
             font-family: Arial, sans-serif;
         }
+
+        @media (orientation: landscape) {
+            body {
+                flex-direction: row;
+            }
+
+            /* Adjust iframe and touchpad size for landscape view */
+            .iframe-container {
+                height: 100vh;
+                width: 60vw;
+            }
+
+            .touchpad {
+                height: 100vh;
+                width: 40vw;
+            }
+        }
+
     </style>
 </head>
 
